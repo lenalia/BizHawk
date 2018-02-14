@@ -14,7 +14,7 @@
 
 		public bool this[string button] => false;
 
-	    public bool IsPressed(string button)
+		public bool IsPressed(string button)
 		{
 			return false;
 		}
@@ -24,6 +24,6 @@
 			return 0f;
 		}
 
-		public static NullController Instance = new NullController();
+		public static readonly NullController Instance = new NullController();
 	}
 }

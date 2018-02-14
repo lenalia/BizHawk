@@ -29,21 +29,26 @@ namespace BizHawk.Emulation.Common
 
 		#region IEmulator
 
-		public IEmulatorServiceProvider ServiceProvider { get; private set; }
+		public IEmulatorServiceProvider ServiceProvider { get; }
 
-		public ControllerDefinition ControllerDefinition
-		{
-			get { return NullController.Instance.Definition; }
-		}
+		public ControllerDefinition ControllerDefinition => NullController.Instance.Definition;
 
 		public IController Controller { get; set; }
 
 		public void FrameAdvance(bool render, bool rendersound)
 		{
-			if (render == false) return;
+			if (render == false)
+			{
+				return;
+			}
+
 			if (!_settings.SnowyDisplay)
 			{
-				if (_frameBufferClear) return;
+				if (_frameBufferClear)
+				{
+					return;
+				}
+
 				_frameBufferClear = true;
 				Array.Clear(FrameBuffer, 0, 256 * 192);
 				return;
@@ -69,22 +74,24 @@ namespace BizHawk.Emulation.Common
 			Frame++;
 		}
 
-		public int Frame { get; set; }
+		public int Frame { get; private set; }
 
-		public string SystemId { get { return "NULL"; } }
+		public string SystemId => "NULL";
 
-		public bool DeterministicEmulation { get { return true; } }
+		public bool DeterministicEmulation => true;
 
 		public void ResetCounters()
 		{
 			Frame = 0;
 		}
 
-		public string BoardName { get { return null; } }
+		public string BoardName => null;
 
-		public CoreComm CoreComm { get; private set; }
+		public CoreComm CoreComm { get; }
 
-		public void Dispose() { }
+		public void Dispose()
+		{
+		}
 
 		#endregion
 
@@ -95,30 +102,15 @@ namespace BizHawk.Emulation.Common
 			return FrameBuffer;
 		}
 
-		public int VirtualWidth
-		{
-			get { return 256; }
-		}
+		public int VirtualWidth => 256;
 
-		public int VirtualHeight
-		{
-			get { return 192; }
-		}
+		public int VirtualHeight => 192;
 
-		public int BufferWidth
-		{
-			get { return 256; }
-		}
+		public int BufferWidth => 256;
 
-		public int BufferHeight
-		{
-			get { return 192; }
-		}
+		public int BufferHeight => 192;
 
-		public int BackgroundColor
-		{
-			get { return 0; }
-		}
+		public int BackgroundColor => 0;
 
 		#endregion
 
@@ -166,10 +158,7 @@ namespace BizHawk.Emulation.Common
 			}
 		}
 
-		public bool CanProvideAsync
-		{
-			get { return true; }
-		}
+		public bool CanProvideAsync => true;
 
 		public SyncSoundMode SyncMode { get; private set; }
 
@@ -212,7 +201,7 @@ namespace BizHawk.Emulation.Common
 		private bool _frameBufferClear = true;
 
 		private bool _xmas;
-		private Pleg _pleg;
+		private readonly Pleg _pleg;
 
 		private NullEmulatorSettings _settings;
 
@@ -367,9 +356,7 @@ namespace BizHawk.Emulation.Common
 				return;
 			}
 
-			var s = new SinMan(1500, n);
-			s.c = c;
-			s.n = n;
+			var s = new SinMan(1500, n) { c = c, n = n };
 			SinMen.Add(s);
 		}
 
@@ -389,6 +376,7 @@ namespace BizHawk.Emulation.Common
 					ret += s.Next();
 				}
 			}
+
 			if (ret > 32767) ret = 32767;
 			if (ret < -32767) ret = -32767;
 			return (short)ret;
@@ -443,10 +431,7 @@ namespace BizHawk.Emulation.Common
 
 		public bool fading = false;
 
-		public bool Done
-		{
-			get { return amp < 2.0; }
-		}
+		public bool Done => amp < 2.0;
 
 		static double GetFreq(int note)
 		{
@@ -458,9 +443,15 @@ namespace BizHawk.Emulation.Common
 			short result = (short)(Math.Sin(theta) * amp);
 			theta += freq * Math.PI / 22050.0;
 			if (theta >= Math.PI * 2.0)
+			{
 				theta -= Math.PI * 2.0;
+			}
+
 			if (fading)
+			{
 				amp *= 0.87;
+			}
+
 			return result;
 		}
 

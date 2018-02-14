@@ -11,26 +11,20 @@ namespace BizHawk.Emulation.Common
 	/// <seealso cref="IEmulator" />
 	public class CoreComm
 	{
-		public CoreComm(Action<string> showMessage, Action<string> NotifyMessage)
+		public CoreComm(Action<string> showMessage, Action<string> notifyMessage)
 		{
 			ShowMessage = showMessage;
-			Notify = NotifyMessage;
+			Notify = notifyMessage;
 		}
 
 		public ICoreFileProvider CoreFileProvider;
 
-		public double VsyncRate
-		{
-			get
-			{
-				return VsyncNum / (double)VsyncDen;
-			}
-		}
+		public double VsyncRate => VsyncNum / (double)VsyncDen;
 
 		public int VsyncNum = 60;
 		public int VsyncDen = 1;
 
-		//a core should set these if you wish to provide rom status information yourself. otherwise it will be calculated by the frontend in a way you may not like, using RomGame-related concepts.
+		// a core should set these if you wish to provide rom status information yourself. otherwise it will be calculated by the frontend in a way you may not like, using RomGame-related concepts.
 		public string RomStatusAnnotation;
 		public string RomStatusDetails;
 
@@ -40,7 +34,7 @@ namespace BizHawk.Emulation.Common
 		public int NominalWidth = 640;
 		public int NominalHeight = 480;
 
-		//I know we want to get rid of CoreComm, but while it's still here, I'll use it for this
+		// I know we want to get rid of CoreComm, but while it's still here, I'll use it for this
 		public string LaunchLibretroCore;
 
 		/// <summary>
@@ -53,9 +47,9 @@ namespace BizHawk.Emulation.Common
 		/// </summary>
 		public Action<string> Notify { get; private set; }
 
-		public Func<int,int,bool,object> RequestGLContext;
+		public Func<int, int, bool, object> RequestGLContext;
 		public Action<object> ReleaseGLContext;
 		public Action<object> ActivateGLContext;
-		public Action DeactivateGLContext; //this shouldnt be necessary.. frontend should be changing context before it does anything.. but for now..
+		public Action DeactivateGLContext; // this shouldnt be necessary.. frontend should be changing context before it does anything.. but for now..
 	}
 }

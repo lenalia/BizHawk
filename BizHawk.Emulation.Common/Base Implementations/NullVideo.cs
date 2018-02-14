@@ -12,18 +12,16 @@
 			return new int[BufferWidth * BufferHeight];
 		}
 
+		public static NullVideo Instance { get; } = new NullVideo();
+
 		public int VirtualWidth => 256;
 
-	    public int VirtualHeight => 192;
+		public int VirtualHeight => 192;
 
-	    public int BufferWidth => 256;
+		public int BufferWidth => 256;
 
-	    public int BufferHeight => 192;
+		public int BufferHeight => 192;
 
-	    public int BackgroundColor => 0;
-
-	    private static readonly NullVideo _nullVideo = new NullVideo();
-
-		public static NullVideo Instance => _nullVideo;
+		public int BackgroundColor => 0;
 	}
 }

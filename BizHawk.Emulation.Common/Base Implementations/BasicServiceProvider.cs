@@ -14,7 +14,7 @@ namespace BizHawk.Emulation.Common
 	/// <seealso cref="IEmulatorServiceProvider"/> 
 	public class BasicServiceProvider : IEmulatorServiceProvider
 	{
-		private Dictionary<Type, object> Services = new Dictionary<Type, object>();
+		private readonly Dictionary<Type, object> Services = new Dictionary<Type, object>();
 
 		public BasicServiceProvider(IEmulator core)
 		{
@@ -22,9 +22,7 @@ namespace BizHawk.Emulation.Common
 			// this removes the possibility of automagically picking up a service in a nested class, (find the type, then
 			// find the field), but we're going to keep such logic out of the basic provider.  anything the passed
 			// core doesn't implement directly needs to be added with Register()
-
 			// this also fully allows services that are not IEmulatorService
-
 			Type coreType = core.GetType();
 
 			var services = coreType.GetInterfaces()

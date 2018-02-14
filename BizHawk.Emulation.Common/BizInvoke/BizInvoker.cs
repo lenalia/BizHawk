@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
+
 using BizHawk.Common;
 
 namespace BizHawk.Emulation.Common.BizInvoke
@@ -24,9 +24,11 @@ namespace BizHawk.Emulation.Common.BizInvoke
 			{
 				var ret = Activator.CreateInstance(ImplType);
 				foreach (var f in Hooks)
+				{
 					f(ret, dll);
-				if (ConnectMonitor != null)
-					ConnectMonitor(ret, monitor);
+				}
+
+				ConnectMonitor?.Invoke(ret, monitor);
 				return ret;
 			}
 		}
@@ -34,12 +36,13 @@ namespace BizHawk.Emulation.Common.BizInvoke
 		/// <summary>
 		/// dictionary of all generated proxy implementations and their basetypes
 		/// </summary>
-		private static IDictionary<Type, InvokerImpl> Impls = new Dictionary<Type, InvokerImpl>();
+		private static readonly IDictionary<Type, InvokerImpl> Impls = new Dictionary<Type, InvokerImpl>();
 
 		/// <summary>
 		/// the assembly that all proxies are placed in
 		/// </summary>
 		private static readonly AssemblyBuilder ImplAssemblyBuilder;
+
 		/// <summary>
 		/// the module that all proxies are placed in
 		/// </summary>
@@ -68,8 +71,12 @@ namespace BizHawk.Emulation.Common.BizInvoke
 					Impls.Add(baseType, impl);
 				}
 			}
+
 			if (impl.ConnectMonitor != null)
+			{
 				throw new InvalidOperationException("Class was previously proxied with a monitor!");
+			}
+
 			return (T)impl.Create(dll, null);
 		}
 
@@ -86,22 +93,33 @@ namespace BizHawk.Emulation.Common.BizInvoke
 					Impls.Add(baseType, impl);
 				}
 			}
+
 			if (impl.ConnectMonitor == null)
+			{
 				throw new InvalidOperationException("Class was previously proxied without a monitor!");
+			}
+
 			return (T)impl.Create(dll, monitor);
 		}
 
 		private static InvokerImpl CreateProxy(Type baseType, bool monitor)
 		{
 			if (baseType.IsSealed)
+			{
 				throw new InvalidOperationException("Can't proxy a sealed type");
+			}
+
 			if (!baseType.IsPublic)
+			{
 				// the proxy type will be in a new assembly, so public is required here
 				throw new InvalidOperationException("Type must be public");
+			}
 
 			var baseConstructor = baseType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null);
 			if (baseConstructor == null)
+			{
 				throw new InvalidOperationException("Base type must have a zero arg constructor");
+			}
 
 			var baseMethods = baseType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
 				.Select(m => new
@@ -113,18 +131,24 @@ namespace BizHawk.Emulation.Common.BizInvoke
 				.ToList();
 
 			if (baseMethods.Count == 0)
+			{
 				throw new InvalidOperationException("Couldn't find any [BizImport] methods to proxy");
+			}
 
 			{
 				var uo = baseMethods.FirstOrDefault(a => !a.Info.IsVirtual || a.Info.IsFinal);
 				if (uo != null)
+				{
 					throw new InvalidOperationException("Method " + uo.Info.Name + " cannot be overriden!");
+				}
 
 				// there's no technical reason to disallow this, but we wouldn't be doing anything
 				// with the base implementation, so it's probably a user error
 				var na = baseMethods.FirstOrDefault(a => !a.Info.IsAbstract);
 				if (na != null)
+				{
 					throw new InvalidOperationException("Method " + na.Info.Name + " is not abstract!");
+				}
 			}
 
 			// hooks that will be run on the created proxy object
@@ -151,7 +175,9 @@ namespace BizHawk.Emulation.Common.BizInvoke
 				ImplType = type.CreateType()
 			};
 			if (monitor)
+			{
 				ret.ConnectMonitor = (o, m) => o.GetType().GetField(monitorField.Name).SetValue(o, m);
+			}
 
 			return ret;
 		}
@@ -214,7 +240,9 @@ namespace BizHawk.Emulation.Common.BizInvoke
 			il.Emit(OpCodes.Ldarg_0);
 			il.Emit(OpCodes.Ldfld, field);
 			for (int i = 0; i < paramTypes.Length; i++)
+			{
 				il.Emit(OpCodes.Ldarg, (short)(i + 1));
+			}
 
 			il.Emit(OpCodes.Callvirt, delegateInvoke);
 
@@ -288,6 +316,7 @@ namespace BizHawk.Emulation.Common.BizInvoke
 				// arg 0 is this, so + 1
 				nativeParamTypes.Add(EmitParamterLoad(il, i + 1, paramTypes[i]));
 			}
+
 			il.Emit(OpCodes.Ldarg_0);
 			il.Emit(OpCodes.Ldfld, field);
 			il.EmitCalli(OpCodes.Calli, nativeCall, returnType, nativeParamTypes.ToArray());
@@ -333,11 +362,18 @@ namespace BizHawk.Emulation.Common.BizInvoke
 		private static void LoadConstant(ILGenerator il, IntPtr p)
 		{
 			if (p == IntPtr.Zero)
+			{
 				il.Emit(OpCodes.Ldc_I4_0);
+			}
 			else if (IntPtr.Size == 4)
+			{
 				il.Emit(OpCodes.Ldc_I4, (int)p);
+			}
 			else
+			{
 				il.Emit(OpCodes.Ldc_I8, (long)p);
+			}
+
 			il.Emit(OpCodes.Conv_I);
 		}
 
@@ -347,11 +383,18 @@ namespace BizHawk.Emulation.Common.BizInvoke
 		private static void LoadConstant(ILGenerator il, UIntPtr p)
 		{
 			if (p == UIntPtr.Zero)
+			{
 				il.Emit(OpCodes.Ldc_I4_0);
+			}
 			else if (UIntPtr.Size == 4)
+			{
 				il.Emit(OpCodes.Ldc_I4, (int)p);
+			}
 			else
+			{
 				il.Emit(OpCodes.Ldc_I8, (long)p);
+			}
+
 			il.Emit(OpCodes.Conv_U);
 		}
 
@@ -361,12 +404,18 @@ namespace BizHawk.Emulation.Common.BizInvoke
 		private static Type EmitParamterLoad(ILGenerator il, int idx, Type type)
 		{
 			if (type.IsGenericType)
+			{
 				throw new InvalidOperationException("Generic types not supported");
+			}
+
 			if (type.IsByRef)
 			{
 				var et = type.GetElementType();
 				if (!et.IsPrimitive && !et.IsEnum)
+				{
 					throw new InvalidOperationException("Only refs of primitive or enum types are supported!");
+				}
+
 				var loc = il.DeclareLocal(type, true);
 				il.Emit(OpCodes.Ldarg, (short)idx);
 				il.Emit(OpCodes.Dup);
@@ -374,17 +423,24 @@ namespace BizHawk.Emulation.Common.BizInvoke
 				il.Emit(OpCodes.Conv_I);
 				return typeof(IntPtr);
 			}
-			else if (type.IsArray)
+
+			if (type.IsArray)
 			{
 				var et = type.GetElementType();
 				if (!et.IsPrimitive && !et.IsEnum)
+				{
 					throw new InvalidOperationException("Only arrays of primitive or enum types are supported!");
+				}
 
 				// these two cases aren't too hard to add
 				if (type.GetArrayRank() > 1)
+				{
 					throw new InvalidOperationException("Multidimensional arrays are not supported!");
+				}
 				if (type.Name.Contains('*'))
+				{
 					throw new InvalidOperationException("Only 0-based 1-dimensional arrays are supported!");
+				}
 
 				var loc = il.DeclareLocal(type, true);
 				var end = il.DefineLabel();
@@ -407,7 +463,8 @@ namespace BizHawk.Emulation.Common.BizInvoke
 
 				return typeof(IntPtr);
 			}
-			else if (typeof(Delegate).IsAssignableFrom(type))
+
+			if (typeof(Delegate).IsAssignableFrom(type))
 			{
 				var mi = typeof(Marshal).GetMethod("GetFunctionPointerForDelegate", new[] { typeof(Delegate) });
 				var end = il.DefineLabel();
@@ -425,15 +482,14 @@ namespace BizHawk.Emulation.Common.BizInvoke
 				il.MarkLabel(end);
 				return typeof(IntPtr);
 			}
-			else if (type.IsPrimitive || type.IsEnum)
+
+			if (type.IsPrimitive || type.IsEnum)
 			{
 				il.Emit(OpCodes.Ldarg, (short)idx);
 				return type;
 			}
-			else
-			{
-				throw new InvalidOperationException("Unrecognized parameter type!");
-			}
+
+			throw new InvalidOperationException("Unrecognized parameter type!");
 		}
 
 		private static CustomAttributeBuilder GetAttributeBuilder(object o)
@@ -441,7 +497,10 @@ namespace BizHawk.Emulation.Common.BizInvoke
 			// anything more clever we can do here?
 			var t = o.GetType();
 			if (t == typeof(OutAttribute) || t == typeof(InAttribute))
+			{
 				return new CustomAttributeBuilder(t.GetConstructor(Type.EmptyTypes), new object[0]);
+			}
+
 			throw new InvalidOperationException("Unknown parameter attribute " + t.Name);
 		}
 	}
@@ -452,11 +511,7 @@ namespace BizHawk.Emulation.Common.BizInvoke
 	[AttributeUsage(AttributeTargets.Method)]
 	public class BizImportAttribute : Attribute
 	{
-		public CallingConvention CallingConvention
-		{
-			get { return _callingConvention; }
-		}
-		private readonly CallingConvention _callingConvention;
+		public CallingConvention CallingConvention { get; }
 
 		/// <summary>
 		/// name of entry point; if not given, the method's name is used
@@ -469,12 +524,11 @@ namespace BizHawk.Emulation.Common.BizInvoke
 		public bool Compatibility { get; set; }
 
 		/// <summary>
-		/// 
 		/// </summary>
 		/// <param name="c">unmanaged calling convention</param>
 		public BizImportAttribute(CallingConvention c)
 		{
-			_callingConvention = c;
+			CallingConvention = c;
 		}
 	}
 }

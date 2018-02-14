@@ -113,7 +113,6 @@ namespace BizHawk.Client.EmuHawk
 				ModeChangedCallback = SetMainformMovieInfo
 			};
 
-			new AutoResetEvent(false);
 			Icon = Properties.Resources.logo;
 			InitializeComponent();
 			Global.Game = GameInfo.NullInstance;
@@ -4219,6 +4218,11 @@ namespace BizHawk.Client.EmuHawk
 		private void HelpSubMenu_DropDownOpened(object sender, EventArgs e)
 		{
 			FeaturesMenuItem.Visible = VersionInfo.DeveloperBuild;
+		}
+
+		private void SNESControllerConfigurationMenuItem_Click(object sender, EventArgs e)
+		{
+			new SNESControllerSettings().ShowDialog();
 		}
 
 		private void CreateMultigameFileMenuItem_Click(object sender, EventArgs e)

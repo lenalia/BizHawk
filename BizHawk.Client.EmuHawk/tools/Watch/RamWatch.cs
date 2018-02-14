@@ -78,13 +78,10 @@ namespace BizHawk.Client.EmuHawk
 				};
 			}
 
-			public ColumnList Columns { get; set; }
+			public ColumnList Columns { get; }
 		}
 
-		private IEnumerable<int> SelectedIndices
-		{
-			get { return WatchListView.SelectedIndices.Cast<int>(); }
-		}
+		private IEnumerable<int> SelectedIndices => WatchListView.SelectedIndices.Cast<int>();
 
 		private IEnumerable<Watch> SelectedItems
 		{
@@ -106,7 +103,7 @@ namespace BizHawk.Client.EmuHawk
 
 		public bool UpdateBefore => false;
 
-	    #region API
+		#region API
 
 		public void AddWatch(Watch watch)
 		{
@@ -225,7 +222,9 @@ namespace BizHawk.Client.EmuHawk
 			}
 		}
 
-		public void NewUpdate(ToolFormUpdateType type) { }
+		public void NewUpdate(ToolFormUpdateType type)
+		{
+		}
 
 		public void UpdateValues()
 		{
@@ -391,15 +390,15 @@ namespace BizHawk.Client.EmuHawk
 
 			if (SelectedWatches.Any())
 			{
-			    foreach (var sw in SelectedWatches)
-			    {
-			        if (sw.Domain != SelectedWatches.First().Domain)
-			        {
-			            throw new InvalidOperationException("Can't edit multiple watches on varying memorydomains");
-			        }
-			    }
+				foreach (var sw in SelectedWatches)
+				{
+					if (sw.Domain != SelectedWatches.First().Domain)
+					{
+						throw new InvalidOperationException("Can't edit multiple watches on varying memorydomains");
+					}
+				}
 
-			    var we = new WatchEditor
+				var we = new WatchEditor
 				{
 					InitialLocation = this.ChildPointToScreen(WatchListView),
 					MemoryDomains = _memoryDomains
@@ -705,7 +704,7 @@ namespace BizHawk.Client.EmuHawk
 			PauseMenuItem.Text = _paused ? "Unpause" : "Pause";
 		}
 
-		private MemoryDomain _currentDomain = null;
+		private MemoryDomain _currentDomain;
 
 		private MemoryDomain CurrentDomain
 		{
@@ -770,7 +769,7 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (SelectedWatches.Any())
 			{
-				RamPoke poke = new RamPoke
+				var poke = new RamPoke
 				{
 					InitialLocation = this.ChildPointToScreen(WatchListView)
 				};

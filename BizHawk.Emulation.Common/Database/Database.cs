@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
-using BizHawk.Common;
 using BizHawk.Common.BufferExtensions;
 
 namespace BizHawk.Emulation.Common
@@ -213,7 +212,7 @@ namespace BizHawk.Emulation.Common
 		public static GameInfo GetGameInfo(byte[] romData, string fileName)
 		{
 			CompactGameInfo cgi;
-			var hash = string.Format("{0:X8}", CRC32.Calculate(romData));
+			var hash = $"{CRC32.Calculate(romData):X8}";
 			if (db.TryGetValue(hash, out cgi))
 			{
 				return new GameInfo(cgi);
